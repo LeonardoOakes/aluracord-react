@@ -1,36 +1,7 @@
 import { Box, Button, Text, TextField, Image } from "@skynexui/components";
+import React from "react";
+import { useRouter } from "next/router";
 import appConfig from "../config.json";
-
-function GlobalStyle() {
-  return (
-    <style global jsx>{`
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        list-style: none;
-      }
-      body {
-        font-family: "Open Sans", sans-serif;
-      }
-      /* App fit Height */
-      html,
-      body,
-      #__next {
-        min-height: 100vh;
-        display: flex;
-        flex: 1;
-      }
-      #__next {
-        flex: 1;
-      }
-      #__next > * {
-        flex: 1;
-      }
-      /* ./App fit Height */
-    `}</style>
-  );
-}
 
 function Title(props) {
   const Tag = props.tag || "h1";
@@ -39,7 +10,7 @@ function Title(props) {
       <Tag>{props.children}</Tag>
       <style jsx>{`
         ${Tag} {
-          color: ${appConfig.theme.colors.skyBlue[600]};
+          color: ${appConfig.theme.colors.neutrals["000"]};
           font-size: 24px;
           font-weight: 600;
         }
@@ -49,17 +20,18 @@ function Title(props) {
 }
 
 export default function PaginaInicial() {
-  const username = "LeonardoOakes";
+  const [username, setUsername] = React.useState("");
+  const router = useRouter();
+  
 
   return (
     <>
-      <GlobalStyle />
       <Box
         styleSheet={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: appConfig.theme.colors.neutrals['000'],
+          backgroundColor: appConfig.theme.colors.neutrals["000"],
           backgroundImage: "url(https://i.imgur.com/mY0HPRt.jpg)",
           backgroundRepeat: "no-repeat",
           backgroundSize: "cover",
@@ -87,6 +59,10 @@ export default function PaginaInicial() {
           {/* Formulário */}
           <Box
             as="form"
+            onSubmit={function (eventInfo) {
+              eventInfo.preventDefault();
+              router.push("/chat");
+            }}
             styleSheet={{
               display: "flex",
               flexDirection: "column",
@@ -102,19 +78,27 @@ export default function PaginaInicial() {
               variant="body3"
               styleSheet={{
                 marginBottom: "32px",
-                color: appConfig.theme.colors.neutrals[300],
+                color: appConfig.theme.colors.skyBlue[400],
               }}
             >
               {appConfig.name}
             </Text>
 
             <TextField
+              value={username}
+              onChange={function (event) {
+                // Onde está o valor?
+                const value = event.target.value;
+                // Trocar o valor da variaval atraves do React e avisar a quem precisa.
+                setUsername(value);
+              }}
               fullWidth
+              placeholder="Insira seu usuário Github"
               textFieldColors={{
                 neutral: {
                   textColor: appConfig.theme.colors.neutrals[200],
                   mainColor: appConfig.theme.colors.neutrals[900],
-                  mainColorHighlight: appConfig.theme.colors.primary[500],
+                  mainColorHighlight: appConfig.theme.colors.skyBlue[600],
                   backgroundColor: appConfig.theme.colors.neutrals[800],
                 },
               }}
@@ -125,9 +109,9 @@ export default function PaginaInicial() {
               fullWidth
               buttonColors={{
                 contrastColor: appConfig.theme.colors.neutrals["000"],
-                mainColor: appConfig.theme.colors.primary[500],
-                mainColorLight: appConfig.theme.colors.primary[400],
-                mainColorStrong: appConfig.theme.colors.primary[600],
+                mainColor: appConfig.theme.colors.skyBlue[700],
+                mainColorLight: appConfig.theme.colors.skyBlue[500],
+                mainColorStrong: appConfig.theme.colors.skyBlue[800],
               }}
             />
           </Box>
@@ -141,9 +125,9 @@ export default function PaginaInicial() {
               alignItems: "center",
               maxWidth: "200px",
               padding: "16px",
-              backgroundColor: appConfig.theme.colors.neutrals[800],
+              backgroundColor: appConfig.theme.colors.neutrals[900],
               border: "1px solid",
-              borderColor: appConfig.theme.colors.neutrals[999],
+              borderColor: appConfig.theme.colors.skyBlue[600],
               borderRadius: "10px",
               flex: 1,
               minHeight: "240px",
@@ -154,18 +138,25 @@ export default function PaginaInicial() {
                 borderRadius: "50%",
                 marginBottom: "16px",
               }}
-              src={`https://github.com/${username}.png`}
+              src={
+                username.length > 0
+                  ? `https://github.com/${username}.png`
+                  : `https://i.imgur.com/f0CbPck.png`
+              }
+              onError={function (event) {
+                event.target.src = "https://i.imgur.com/f0CbPck.png";
+              }}
             />
             <Text
               variant="body4"
               styleSheet={{
                 color: appConfig.theme.colors.neutrals[200],
-                backgroundColor: appConfig.theme.colors.neutrals[900],
+                backgroundColor: appConfig.theme.colors.neutrals[999],
                 padding: "3px 10px",
                 borderRadius: "1000px",
               }}
             >
-              {username}
+              {username || "Usuário não foi encontrado"}
             </Text>
           </Box>
           {/* Photo Area */}
