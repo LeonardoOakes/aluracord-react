@@ -138,6 +138,16 @@ export default function ChatPage() {
                 handleNewMessage(":sticker: " + sticker);
               }}
             />
+            <Button
+              type="button"
+              label="Send"
+              styleSheet={{
+                marginLeft: "10px",
+                height: "100%",
+                minWidth: "60px",
+              }}
+              onClick={() => handleNewMessage(message)}
+            />
           </Box>
         </Box>
       </Box>
