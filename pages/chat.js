@@ -1,19 +1,45 @@
 import { Box, Text, TextField, Image, Button } from "@skynexui/components";
 import React from "react";
 import appConfig from "../config.json";
+import { createClient } from "@supabase/supabase-js";
+import { useRouter } from "next/router";
+import { ButtonSendSticker } from "../src/components/ButtonSendSticker";
+
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzM3NzkwMiwiZXhwIjoxOTU4OTUzOTAyfQ.ilDVQxjfNkORBA4ep54XqOj8DmCyVF-1Lr5YC2QNS3w";
+const SUPABASE_URL = "https://yoaogidzuquigearfloy.supabase.co";
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function ChatPage() {
+  const router = useRouter();
+  const loggedInUser = router.query.username;
   const [message, setMessage] = React.useState("");
   const [messageList, setMessageList] = React.useState([]);
 
+  React.useEffect(() => {
+    supabaseClient
+      .from("mensagens")
+      .select("*")
+      .order("id", { ascending: false })
+      .then(({ data }) => {
+        console.log("Dados da consulta:", data);
+        setMessageList(data);
+      });
+  }, []);
+
   function handleNewMessage(newMessage) {
     const message = {
-      id: messageList.length + 1,
-      de: "vanessametonini",
-      text: newMessage,
+      de: loggedInUser,
+      texto: newMessage,
     };
 
-    setMessageList([message, ...messageList]);
+    supabaseClient
+      .from("mensagens")
+      .insert([message])
+      .then(({ data }) => {
+        console.log("Criando mensagem: ", data);
+        setMessageList([data[0], ...messageList]);
+      });
     setMessage("");
   }
 
@@ -59,6 +85,7 @@ export default function ChatPage() {
           }}
         >
           <MessageList messages={messageList} />
+
           <Box
             as="form"
             styleSheet={{
@@ -69,8 +96,8 @@ export default function ChatPage() {
             <TextField
               value={message}
               onChange={(event) => {
-                const value = event.target.value;
-                setMessage(value);
+                const valor = event.target.value;
+                setMessage(valor);
               }}
               onKeyPress={(event) => {
                 if (event.key === "Enter") {
@@ -89,6 +116,11 @@ export default function ChatPage() {
                 backgroundColor: appConfig.theme.colors.neutrals[800],
                 marginRight: "12px",
                 color: appConfig.theme.colors.neutrals[200],
+              }}
+            />
+            <ButtonSendSticker
+              onStickerClick={(sticker) => {
+                handleNewMessage(":sticker: " + sticker);
               }}
             />
           </Box>
@@ -163,7 +195,7 @@ function MessageList(props) {
                   display: "inline-block",
                   marginRight: "8px",
                 }}
-                src={`https://github.com/vanessametonini.png`}
+                src={`https://github.com/${message.de}.png`}
               />
               <Text tag="strong">{message.de}</Text>
               <Text
@@ -177,7 +209,13 @@ function MessageList(props) {
                 {new Date().toLocaleDateString()}
               </Text>
             </Box>
-            {message.text}
+            {message.texto.startsWith(":sticker:") ? (
+              <Image
+              styleSheet={{ maxWidth: "20%"}}
+               src={message.texto.replace(":sticker:", "")} />
+            ) : (
+              message.texto
+            )}
           </Text>
         );
       })}
