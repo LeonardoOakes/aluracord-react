@@ -10,6 +10,15 @@ const SUPABASE_ANON_KEY =
 const SUPABASE_URL = "https://yoaogidzuquigearfloy.supabase.co";
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+function messageListener(addMessage) {
+  return supabaseClient
+    .from("mensagens")
+    .on("INSERT", (response) => {
+      addMessage(response.new);
+    })
+    .subscribe();
+}
+
 export default function ChatPage() {
   const router = useRouter();
   const loggedInUser = router.query.username;
@@ -22,9 +31,18 @@ export default function ChatPage() {
       .select("*")
       .order("id", { ascending: false })
       .then(({ data }) => {
-        console.log("Dados da consulta:", data);
         setMessageList(data);
       });
+
+    const subscription = messageListener((newMessage) => {
+      setMessageList((actualList) => {
+        return [newMessage, ...actualList];
+      });
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   function handleNewMessage(newMessage) {
@@ -36,10 +54,7 @@ export default function ChatPage() {
     supabaseClient
       .from("mensagens")
       .insert([message])
-      .then(({ data }) => {
-        console.log("Criando mensagem: ", data);
-        setMessageList([data[0], ...messageList]);
-      });
+      .then(({ data }) => {});
     setMessage("");
   }
 
@@ -155,7 +170,6 @@ function Header() {
 }
 
 function MessageList(props) {
-  console.log(props);
   return (
     <Box
       tag="ul"
@@ -211,8 +225,9 @@ function MessageList(props) {
             </Box>
             {message.texto.startsWith(":sticker:") ? (
               <Image
-              styleSheet={{ maxWidth: "20%"}}
-               src={message.texto.replace(":sticker:", "")} />
+                styleSheet={{ maxWidth: "20%" }}
+                src={message.texto.replace(":sticker:", "")}
+              />
             ) : (
               message.texto
             )}
